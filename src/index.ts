@@ -1,7 +1,7 @@
 import WorkerFactory, { WorkerPlugin, WorkerServiceFrameworker } from '@nelts/worker';
 import AgentFactory, { AgentPlugin } from '@nelts/agent';
 import MasterFactory, { MasterPlugin } from '@nelts/master';
-import { RedisOptions } from 'ioredis';
+import * as ioredis from 'ioredis';
 import Redis from './redis';
 
 // worker interfaces
@@ -16,15 +16,19 @@ export interface LocalAgentFactory extends AgentFactory {}
 export interface LocalMasterFactory extends MasterFactory {}
 export interface LocalMasterPlugin extends MasterPlugin {}
 
+export {
+  Redis
+}
+
 export function AutoBindRedis<T extends LocalWorkerPlugin<U>, U extends WorkerServiceFrameworker>(
   name: string,
   plu: T, 
-  options: RedisOptions
+  options: ioredis.RedisOptions
 ) {
   const app = plu.app as LocalWorkerFactory<U>;
-  const redis = new Redis(options);
+  const redis = new ioredis(options);
   app.on('ContextStart', async (ctx: any) => {
-    ctx[name] = redis;
+    ctx[name] = new Redis(redis);
     ctx.on('ContextResolve', async () => await ctx[name].commit());
   });
 }

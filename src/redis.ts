@@ -4,8 +4,8 @@ export default class Redis {
   private readonly redis: ioredis.Redis;
   private useTransacte: boolean = false;
   private transacte: ioredis.Pipeline = null;
-  constructor(options: ioredis.RedisOptions) {
-    this.redis = new ioredis(options);
+  constructor(redis: ioredis.Redis) {
+    this.redis = redis;
   }
 
   begin() {
@@ -43,5 +43,13 @@ export default class Redis {
 
   hgetall(name: string) {
     return this.exec('hmset', name);
+  }
+
+  del(name: string) {
+    return this.exec('del', name);
+  }
+
+  expire(name: string, time: number) {
+    return this.exec('expire', name, time);
   }
 }

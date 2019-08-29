@@ -1,12 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const ioredis = require("ioredis");
 const commands = require('redis-commands');
 class Redis {
-    constructor(options) {
+    constructor(redis) {
         this.useTransacte = false;
         this.transacte = null;
-        this.redis = new ioredis(options);
+        this.redis = redis;
     }
     begin() {
         if (this.useTransacte)
@@ -41,6 +40,12 @@ class Redis {
     }
     hgetall(name) {
         return this.exec('hmset', name);
+    }
+    del(name) {
+        return this.exec('del', name);
+    }
+    expire(name, time) {
+        return this.exec('expire', name, time);
     }
 }
 exports.default = Redis;
