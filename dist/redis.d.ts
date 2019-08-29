@@ -13,4 +13,5 @@ export default class Redis {
     hgetall(name: string): Promise<any>;
     del(name: string): Promise<any>;
     expire(name: string, time: number): Promise<any>;
+    exists(name: string): Promise<any>;
 }

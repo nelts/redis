@@ -52,4 +52,8 @@ export default class Redis {
   expire(name: string, time: number) {
     return this.exec('expire', name, time);
   }
+
+  exists(name: string) {
+    return this.exec('exists', name);
+  }
 }
