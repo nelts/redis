@@ -1,0 +1,40 @@
+{
+  "name": "@nelts/redis",
+  "version": "1.0.0",
+  "description": "The description of this project",
+  "main": "dist/index.js",
+  "source": "dist",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nelts/redis.git"
+  },
+  "scripts": {
+    "dev": "nelts-server dev -m 1 -d @nelts/master",
+    "build": "rm -rf dist/ && tsc -d",
+    "start": "nelts-server start -d @nelts/master",
+    "restart": "nelts-server restart",
+    "stop": "nelts-server stop"
+  },
+  "keywords": [
+    "template",
+    "nelts"
+  ],
+  "author": "cevio",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nelts/redis/issues"
+  },
+  "homepage": "https://github.com/nelts/redis#readme",
+  "devDependencies": {
+    "@nelts/cli": "^1.0.9",
+    "@nelts/master": "^1.0.45",
+    "@nelts/process": "^1.1.23",
+    "ts-node": "^8.3.0",
+    "typescript": "^3.5.3"
+  },
+  "dependencies": {
+    "@types/ioredis": "^4.0.15",
+    "ioredis": "^4.14.0",
+    "redis-commands": "^1.5.0"
+  }
+}
