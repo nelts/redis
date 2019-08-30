@@ -4,51 +4,107 @@ const commands = require('redis-commands');
 class Redis {
     constructor(redis) {
         this.useTransacte = false;
-        this.transacte = null;
+        this.pools = [];
+        this.transacteValues = {};
         this.redis = redis;
     }
     begin() {
         if (this.useTransacte)
             return;
-        this.transacte = this.redis.multi();
+        this.pools = [];
+        this.transacteValues = {};
         this.useTransacte = true;
         return this;
     }
     async commit() {
-        if (this.useTransacte)
+        if (!this.useTransacte)
             return;
-        await this.transacte.exec();
+        const pools = this.pools.slice(0);
+        this.pools = [];
+        for (let i = 0; i < pools.length; i++) {
+            const cmd = pools[i].cmd;
+            const args = pools[i].args;
+            await this.execute(cmd, args);
+        }
+        this.transacteValues = {};
         this.useTransacte = false;
-        this.transacte = null;
         return this;
     }
-    async exec(cmd, ...args) {
-        if (!commands.exists[cmd])
-            throw new Error('redis cannot find the command of ' + cmd);
-        if (cmd && this.useTransacte && commands.hasFlag(cmd, 'write'))
-            return await this.transacte[cmd](...args);
+    async rollback() {
+        if (!this.useTransacte)
+            return;
+        this.pools = [];
+        this.transacteValues = {};
+        this.useTransacte = false;
+    }
+    async execute(cmd, args) {
         return await this.redis[cmd](...args);
     }
-    get(name) {
-        return this.exec('get', name);
+    async get(name) {
+        if (this.useTransacte) {
+            if (this.transacteValues[name])
+                return this.transacteValues[name];
+        }
+        return await this.redis.get(name);
     }
-    set(name, value) {
-        return this.exec('set', name, value);
+    async set(name, value) {
+        if (this.useTransacte) {
+            this.pools.push({
+                cmd: 'set',
+                args: [name, value]
+            });
+            this.transacteValues[name] = value;
+        }
+        else {
+            await this.redis.set(name, value);
+        }
     }
-    hmset(name, value) {
-        return this.exec('hmset', name, value);
+    async hmset(name, value) {
+        if (this.useTransacte) {
+            this.pools.push({
+                cmd: 'hmset',
+                args: [name, value]
+            });
+            this.transacteValues[name] = value;
+        }
+        else {
+            await this.redis.hmset(name, value);
+        }
     }
-    hgetall(name) {
-        return this.exec('hmset', name);
+    async hgetall(name) {
+        if (this.useTransacte) {
+            if (this.transacteValues[name])
+                return this.transacteValues[name];
+        }
+        return await this.redis.hgetall(name);
     }
-    del(name) {
-        return this.exec('del', name);
+    async del(name) {
+        if (this.useTransacte) {
+            this.pools.push({
+                cmd: 'del',
+                args: [name]
+            });
+            if (this.transacteValues[name])
+                Reflect.deleteProperty(this.transacteValues, name);
+            return;
+        }
+        return await this.redis.del(name);
     }
-    expire(name, time) {
-        return this.exec('expire', name, time);
+    async expire(name, time) {
+        if (this.useTransacte) {
+            return this.pools.push({
+                cmd: 'expire',
+                args: [name, time]
+            });
+        }
+        return await this.redis.expire(name, time);
     }
-    exists(name) {
-        return this.exec('exists', name);
+    async exists(name) {
+        if (this.useTransacte) {
+            if (this.transacteValues[name])
+                return 1;
+        }
+        return await this.redis.exists(name);
     }
 }
 exports.default = Redis;

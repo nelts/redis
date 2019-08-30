@@ -9,6 +9,7 @@ function AutoBindRedis(name, plu, options) {
     app.on('ContextStart', async (ctx) => {
         ctx[name] = new redis_1.default(redis);
         ctx.on('ContextResolve', async () => await ctx[name].commit());
+        ctx.on('ContextReject', async () => await ctx[name].rollback());
     });
 }
 exports.AutoBindRedis = AutoBindRedis;

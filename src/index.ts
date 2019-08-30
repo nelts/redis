@@ -30,5 +30,6 @@ export function AutoBindRedis<T extends LocalWorkerPlugin<U>, U extends WorkerSe
   app.on('ContextStart', async (ctx: any) => {
     ctx[name] = new Redis(redis);
     ctx.on('ContextResolve', async () => await ctx[name].commit());
+    ctx.on('ContextReject', async () => await ctx[name].rollback());
   });
 }

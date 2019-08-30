@@ -2,16 +2,18 @@ import * as ioredis from 'ioredis';
 export default class Redis {
     private readonly redis;
     private useTransacte;
-    private transacte;
+    private pools;
+    private transacteValues;
     constructor(redis: ioredis.Redis);
     begin(): this;
     commit(): Promise<this>;
-    exec(cmd: string, ...args: any[]): Promise<any>;
+    rollback(): Promise<void>;
+    private execute;
     get(name: string): Promise<any>;
-    set(name: string, value: any): Promise<any>;
-    hmset(name: string, value: any): Promise<any>;
+    set(name: string, value: any): Promise<void>;
+    hmset(name: string, value: any): Promise<void>;
     hgetall(name: string): Promise<any>;
-    del(name: string): Promise<any>;
-    expire(name: string, time: number): Promise<any>;
-    exists(name: string): Promise<any>;
+    del(name: string): Promise<number>;
+    expire(name: string, time: number): Promise<number>;
+    exists(name: string): Promise<number>;
 }
